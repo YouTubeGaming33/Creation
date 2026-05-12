@@ -1,0 +1,53 @@
+# Required Discord Library(s).
+import discord
+from discord.ext import commands
+
+# Required OS Library.
+import os
+
+# Imports from config.py - Required for Token and GUILD ID.
+from core.config import DISCORD_TOKEN, GUILD_ID
+
+# Sets DISCORD_TOKEN to TOKEN Variable.
+TOKEN = DISCORD_TOKEN
+
+# Required Asyncio Library - Organisation. 
+import asyncio
+
+# Set Intents to .all - Allows for Use of All Intents without adding additional.
+intents = discord.Intents.all()
+
+DEV_MODE = True
+
+# Bot Class - Initiates, Loads Cog(s), Syncs Commands.
+class Creation(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix="!", intents=intents)
+
+    async def setup_hook(self):
+        for filename in os.listdir("./cogs"):
+            if filename.endswith(".py"):
+                await self.load_extension(f"cogs.{filename[:-3]}")
+                print(f"Successfully Loaded Cog: {filename}")
+            
+        try:
+            if DEV_MODE:
+                self.tree.copy_global_to(guild=GUILD_ID)
+                guild_synced = await self.tree.sync(guild=GUILD_ID)
+                print(f"[DEV MODE] Synced {len(guild_synced)} Group(s) to Development Guild.")
+            else:
+                global_synced = await self.tree.sync()
+                print(f"[PROD MODE] Synced {len(global_synced)} Global Group(s)")
+        except Exception as e:
+            print(f"Failed to Sync Commands: {e}")
+
+# Makes Creation() Class Function into a Variable.
+bot = Creation()
+
+# Async Function for Starting Bot.
+async def main():
+    async with bot:
+        await bot.start(TOKEN)
+
+# Asyncio Run Command for Main Function.
+asyncio.run(main())

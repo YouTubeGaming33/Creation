@@ -1,0 +1,13 @@
+# Required Library(s)
+import os
+import discord
+
+from dotenv import load_dotenv
+
+# Pulls Discord Token from .env - includes Loading.
+load_dotenv()
+
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
+# Variable for GUILD ID - Development Purposes.
+GUILD_ID = discord.Object(id=1502664142128025650)
