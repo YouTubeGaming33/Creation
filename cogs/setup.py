@@ -8,37 +8,50 @@ from misc.helper import pull_status
 class Setup(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Start the background task when the Cog loads
         self.update_status_task.start()
 
     def cog_unload(self):
-        # Stop the task if the Cog is unloaded to prevent memory leaks
         self.update_status_task.cancel()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=10)
     async def update_status_task(self):
         await self.bot.wait_until_ready()
         
-        # Get the detailed status
         status_data = pull_status()
-        is_online = status_data["online"]
+        is_online = status_data.get("online", False)
         
         if is_online:
             status_text = "🟢 Online"
-            status_color = 0x2ecc71 # Green
+            status_color = 0x2ecc71
+            
+            players_data = status_data.get('players', {})
+            player_count = players_data.get('online', 0)
+            max_players = players_data.get('max', 0)
+            
+            player_list = players_data.get('list', [])
+            if player_list:
+                usernames = [player['name'] for player in player_list]
+                player_list_str = ", ".join(usernames)
+            else:
+                player_list_str = "Names hidden or unavailable"
+
+            description = (
+                f"**Status:** {status_text}\n"
+                f"**Players:** {player_count}/{max_players}\n\n"
+                f"**Online Players:**\n`{player_list_str}`"
+            )
         else:
             status_text = "🔴 Offline"
-            status_color = 0xe74c3c # Red
-            player_count = 0
+            status_color = 0xe74c3c
+            description = f"**Status:** {status_text}\n\nThe server is currently down."
 
         embed = discord.Embed(
             title="🌐 Server Status",
-            description=f"**Status:** {status_text}",
+            description=description,
             color=status_color
         )
         embed.set_footer(text="Auto-updates every 10 minutes")
 
-        # 5. Fetch and edit the message
         try:
             channel = self.bot.get_channel(1503046380435013843)
             if channel:

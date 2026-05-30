@@ -58,8 +58,11 @@ class Minecraft(commands.Cog):
 
     minecraft = app_commands.Group(name="minecraft", description="Minecraft Commands")
 
-    @minecraft.command(name="debug", description="Debug Command to Test API Response")
+    @minecraft.command(name="debug", description="Debug Command to Send a Test Message")
     async def debug(self, interaction: discord.Interaction):
+        if interaction.user.id != 697528564358184991:
+            await interaction.response.send_message("This is a Debug Command intended for the Developer.", ephemeral=True)
+            return
         channel_id = 1503046380435013843  # Replace with your actual ID
         channel = self.bot.get_channel(channel_id)
 
